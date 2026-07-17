@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="An interactive grammar of machine intelligence for architecture, art and design research. 76 terms derived in seven layers — companion to the Working Glossary of Making.">
+<title>A Working Grammar of Machine Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFBF9;
+  --ink:#17171B;
+  --grey:#7A7A84;
+  --faint:#DDDDD8;
+  --violet:#5A48E6;
+  --violet-soft:#EEEBFD;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --text:"Helvetica Neue",Helvetica,Arial,"Liberation Sans",sans-serif;
+  --max:1080px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:var(--text);font-size:16px;line-height:1.55;
+  text-align:left;
+  padding-bottom:40vh;
+}
+a{color:var(--violet);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+
+/* ── header ─────────────────────────────── */
+header{padding:40px 0 0}
+.meta-line{font-family:var(--mono);font-size:12px;color:var(--grey);letter-spacing:.02em}
+h1{
+  font-family:var(--mono);font-weight:600;
+  font-size:clamp(28px,5.4vw,56px);line-height:1.08;
+  letter-spacing:-.02em;margin-top:14px;
+}
+h1 .thin{font-weight:400;color:var(--grey)}
+.subtitle{font-size:15px;color:var(--grey);margin-top:10px;max-width:56ch}
+.subtitle b{color:var(--ink);font-weight:500}
+
+/* ── hero: the master rule ──────────────── */
+.rule{
+  margin:44px 0 8px;
+  font-family:var(--mono);
+  font-size:clamp(14px,2.4vw,21px);
+  line-height:1.9;
+  border-top:1px solid var(--ink);
+  border-bottom:1px solid var(--ink);
+  padding:22px 0;
+  overflow-x:auto;
+}
+.rule .lhs{font-weight:600}
+.rule .op{color:var(--grey);padding:0 .35em}
+.rule .nt{
+  color:var(--violet);font-weight:500;white-space:nowrap;
+  border-bottom:1px solid transparent;
+}
+.rule .nt:hover{border-bottom-color:var(--violet)}
+.rule-caption{font-size:13.5px;font-family:var(--text);color:var(--grey);max-width:64ch;margin-bottom:36px}
+
+/* ── toolbar ────────────────────────────── */
+.toolbar{
+  position:sticky;top:0;z-index:40;
+  background:var(--paper);
+  border-bottom:1px solid var(--faint);
+  padding:12px 0;
+}
+.toolbar-inner{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
+.views{display:flex;gap:2px;font-family:var(--mono);font-size:13px}
+.views button{
+  padding:6px 12px;color:var(--grey);border:1px solid transparent;
+}
+.views button[aria-pressed="true"]{color:var(--ink);border:1px solid var(--ink)}
+.views button:hover{color:var(--ink)}
+.searchbox{display:flex;align-items:center;gap:8px;flex:1;max-width:320px;min-width:180px}
+.searchbox input{
+  width:100%;font-family:var(--mono);font-size:13px;
+  background:none;border:none;border-bottom:1px solid var(--faint);
+  padding:6px 2px;color:var(--ink);
+}
+.searchbox input:focus{outline:none;border-bottom-color:var(--violet)}
+.searchbox input::placeholder{color:var(--grey)}
+.count{font-family:var(--mono);font-size:12px;color:var(--grey);white-space:nowrap}
+
+/* ── legend ─────────────────────────────── */
+.legend{
+  font-family:var(--mono);font-size:12px;color:var(--grey);
+  padding:18px 0 6px;display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center;
+}
+.legend .chip-demo{
+  display:inline-block;font-size:11px;padding:2px 8px;margin-right:6px;
+  border:1px solid var(--ink);
+}
+.legend .chip-demo.base{border:1px dashed var(--grey);color:var(--grey)}
+.legend .edge-demo{color:var(--violet)}
+
+/* ── derivation view ────────────────────── */
+#derivation{position:relative;padding:8px 0 30px}
+svg#edges{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:5;
+}
+.layer{
+  display:grid;grid-template-columns:170px 1fr;gap:18px;
+  padding:22px 0;border-bottom:1px solid var(--faint);
+}
+.layer:last-child{border-bottom:none}
+.layer-head{font-family:var(--mono)}
+.layer-head .nt-name{font-size:15px;font-weight:600}
+.layer-head .idx{color:var(--grey);font-weight:400;margin-right:6px}
+.layer-head .gloss{display:block;font-size:12px;color:var(--grey);margin-top:4px;line-height:1.5}
+.terms{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+.chip{
+  position:relative;z-index:10;
+  font-family:var(--mono);font-size:13px;line-height:1;
+  padding:7px 11px;border:1px solid var(--ink);background:var(--paper);
+  transition:opacity .15s,border-color .15s,background .15s,color .15s;
+}
+.chip.base{border:1px dashed var(--grey);color:var(--grey)}
+.chip:hover{border-color:var(--violet);color:var(--violet)}
+.chip.on{background:var(--violet);border-color:var(--violet);color:#fff}
+.chip.kin{border-color:var(--violet);color:var(--violet);border-style:solid}
+.chip.dim{opacity:.22}
+@media(max-width:640px){
+  .layer{grid-template-columns:1fr;gap:10px}
+  .layer-head{display:flex;align-items:baseline;gap:12px}
+  .layer-head .gloss{margin-top:0}
+}
+
+/* ── grammar view ───────────────────────── */
+#grammar{display:none;padding:14px 0 40px;font-family:var(--mono)}
+.production{
+  padding:24px 0;border-bottom:1px solid var(--faint);
+  font-size:14px;line-height:2.1;
+}
+.production:last-child{border-bottom:none}
+.production .lhs{font-weight:600;white-space:nowrap}
+.production .assign{color:var(--grey);padding:0 .5em}
+.production .term-t{
+  border-bottom:1px solid var(--faint);white-space:nowrap;
+  transition:color .15s,border-color .15s;
+}
+.production .term-t:hover{color:var(--violet);border-bottom-color:var(--violet)}
+.production .term-t.base{color:var(--grey);border-bottom-style:dashed}
+.production .term-t.on{color:var(--violet);border-bottom-color:var(--violet);font-weight:500}
+.production .bar{color:var(--faint);padding:0 .45em}
+.production .p-gloss{
+  display:block;font-size:12px;color:var(--grey);line-height:1.6;
+  font-family:var(--text);font-size:13px;max-width:60ch;margin-top:2px;
+}
+
+/* ── index view ─────────────────────────── */
+#index{display:none;padding:14px 0 40px}
+.alpha-group{padding:20px 0;border-bottom:1px solid var(--faint)}
+.alpha-group:last-child{border-bottom:none}
+.alpha-letter{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--grey);margin-bottom:12px}
+.entry{
+  display:grid;grid-template-columns:230px 1fr 120px;gap:16px;
+  padding:9px 0;align-items:baseline;
+}
+.entry:hover .e-term{color:var(--violet)}
+.e-term{font-family:var(--mono);font-size:13.5px;text-align:left;line-height:1.4}
+.e-term.base{color:var(--grey)}
+.e-def{font-size:14.5px;color:var(--ink);line-height:1.5}
+.e-layer{font-family:var(--mono);font-size:11.5px;color:var(--violet);text-align:left}
+.entry.dim{display:none}
+@media(max-width:720px){
+  .entry{grid-template-columns:1fr;gap:2px;padding:12px 0}
+  .e-layer{order:-1}
+}
+.noresult{display:none;font-family:var(--mono);font-size:13px;color:var(--grey);padding:30px 0}
+.noresult.show{display:block}
+
+/* ── detail panel ───────────────────────── */
+#panel{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  background:var(--ink);color:var(--paper);
+  transform:translateY(105%);transition:transform .22s ease;
+  max-height:62vh;overflow-y:auto;
+}
+#panel.open{transform:translateY(0)}
+.panel-inner{max-width:var(--max);margin:0 auto;padding:26px 24px 34px;position:relative}
+.panel-close{
+  position:absolute;top:18px;right:20px;
+  font-family:var(--mono);font-size:13px;color:var(--paper);opacity:.7;padding:4px 8px;
+}
+.panel-close:hover{opacity:1}
+.p-layer{font-family:var(--mono);font-size:12px;color:var(--violet-soft)}
+.p-layer .nt-tag{color:#A99BFF}
+.p-term{
+  font-family:var(--mono);font-size:clamp(20px,3.4vw,30px);
+  font-weight:600;margin:8px 0 10px;letter-spacing:-.01em;
+}
+.p-def{font-size:16px;line-height:1.6;max-width:64ch;color:#E9E9E4}
+.p-note{font-family:var(--mono);font-size:12px;color:#9C9CA6;margin-top:10px}
+.p-img{
+  display:inline-block;margin-top:14px;
+  font-family:var(--mono);font-size:12.5px;color:#A99BFF;
+  border-bottom:1px solid #4A4A52;padding-bottom:2px;
+}
+.p-img:hover{color:#fff;border-bottom-color:#A99BFF;text-decoration:none}
+.p-rel{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:640px){.p-rel{grid-template-columns:1fr}}
+.p-rel h3{font-family:var(--mono);font-size:11.5px;font-weight:500;color:#9C9CA6;letter-spacing:.05em;margin-bottom:9px}
+.rel-chips{display:flex;flex-wrap:wrap;gap:7px}
+.rel-chips button{
+  font-family:var(--mono);font-size:12.5px;padding:6px 10px;
+  border:1px solid #4A4A52;color:var(--paper);line-height:1;
+}
+.rel-chips button:hover{border-color:#A99BFF;color:#A99BFF}
+.rel-none{font-family:var(--mono);font-size:12.5px;color:#6E6E76}
+
+/* ── position essay ─────────────────────── */
+.position{margin:56px 0 0;border-top:1px solid var(--ink);padding-top:26px;max-width:66ch}
+.position h2{font-family:var(--mono);font-size:14px;font-weight:600;margin-bottom:14px}
+.position p{font-size:14.5px;color:#3C3C42;margin-bottom:12px}
+.position p em{color:var(--ink)}
+
+/* ── footer ─────────────────────────────── */
+footer{
+  margin-top:64px;border-top:1px solid var(--ink);
+  padding:26px 0 60px;font-family:var(--mono);font-size:12px;color:var(--grey);line-height:2;
+}
+footer b{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="meta-line">Studio glossary · companion volume · v1.0 · 76 terms</div>
+  <h1>A Working Grammar<br>of Machine Intelligence<br><span class="thin">derived in seven layers</span></h1>
+  <p class="subtitle">Not an alphabet this time, but a <b>derivation</b>: every term shown as building on the terms beneath it, the whole field written as a grammar. A companion to <a href="https://adpchrgruber.github.io/adp_adv_26_glossary/">A&nbsp;Working Glossary of Making</a>, growing out of its §8.</p>
+</header>
+
+<div class="wrap">
+  <div class="rule" id="masterRule" aria-label="The master production rule">
+    <span class="lhs">⟨intelligence⟩</span><span class="op">::=</span><button class="nt" data-goto="0">⟨data⟩</button><span class="op">→</span><button class="nt" data-goto="1">⟨model⟩</button><span class="op">→</span><button class="nt" data-goto="2">⟨learning⟩</button><span class="op">→</span><span class="op">(</span><button class="nt" data-goto="3">⟨generation⟩</button><span class="op">|</span><button class="nt" data-goto="4">⟨capture⟩</button><span class="op">|</span><button class="nt" data-goto="5">⟨agency⟩</button><span class="op">)</span><span class="op">⊣</span><button class="nt" data-goto="6">⟨critique⟩</button>
+  </div>
+  <p class="rule-caption">The master rule, read left to right: data feeds a model, a model is educated, an educated model makes, captures, or acts — and everything it does answers to critique. Each bracketed non-terminal expands into a layer below.</p>
+</div>
+
+<div class="toolbar">
+  <div class="wrap toolbar-inner">
+    <div class="views" role="group" aria-label="View">
+      <button id="vDer" aria-pressed="true">Derivation</button>
+      <button id="vGra" aria-pressed="false">Grammar</button>
+      <button id="vIdx" aria-pressed="false">Index</button>
+    </div>
+    <div class="searchbox">
+      <input id="q" type="search" placeholder="Search terms" autocomplete="off" spellcheck="false" aria-label="Search terms">
+    </div>
+    <div class="count" id="count"></div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <div class="legend">
+    <span><span class="chip-demo">term</span> this volume</span>
+    <span><span class="chip-demo base">term</span> already in the Glossary of Making, §8</span>
+    <span><span class="edge-demo">—</span> click any term to trace its full derivation</span>
+  </div>
+
+  <section id="derivation" aria-label="Derivation view">
+    <svg id="edges" aria-hidden="true"></svg>
+    <!-- layers injected -->
+  </section>
+
+  <section id="grammar" aria-label="Grammar view"></section>
+
+  <section id="index" aria-label="Index view"></section>
+  <p class="noresult" id="noresult">No term matches. <button id="clearQ" style="text-decoration:underline">Clear search</button></p>
+
+  <div class="position">
+    <h2>Why a grammar</h2>
+    <p>The first volume ordered the vocabulary of making by domain and by thread. This one cannot be ordered that way, because its terms are not siblings — they are <em>derivations</em>. A diffusion model is unintelligible without the latent space it runs in; an agent is a language model with tools and goals; every critique term points back at some training decision made three layers down.</p>
+    <p>So the ordering principle here is dependency. Seven layers, each only allowed to use what the layers beneath it have already defined — the way a grammar builds sentences from clauses, clauses from words, words from letters. Click any term and the page traces its ancestry to the ground.</p>
+    <p>One rule kept the list durable: <em>name the concept, not the product.</em> No model names, no version numbers, no tools of the season. Every headword is a research concept with a citation trail — the layer beneath the churn.</p>
+  </div>
+</main>
+
+<aside id="panel" aria-live="polite">
+  <div class="panel-inner">
+    <button class="panel-close" id="panelClose" aria-label="Close">close ×</button>
+    <div class="p-layer" id="pLayer"></div>
+    <div class="p-term" id="pTerm"></div>
+    <p class="p-def" id="pDef"></p>
+    <p class="p-note" id="pNote"></p>
+    <a class="p-img" id="pImg" target="_blank" rel="noopener">Example images ↗</a>
+    <div class="p-rel">
+      <div><h3>BUILDS ON</h3><div class="rel-chips" id="pParents"></div></div>
+      <div><h3>LEADS TO</h3><div class="rel-chips" id="pChildren"></div></div>
+    </div>
+  </div>
+</aside>
+
+<footer>
+  <div class="wrap">
+    <b>A Working Grammar of Machine Intelligence</b> · Seminar companion<br>
+    Companion to <a href="https://adpchrgruber.github.io/adp_adv_26_glossary/">A Working Glossary of Making, from Analogue to Digital</a> — this volume expands its §8, Artificial Intelligence &amp; Data<br>
+    Digital vocabulary after the <i>Atlas of Digital Architecture</i> (Birkhäuser, 2020); dashed terms appear there or in the first volume · new terms verified against the research literature, 2024–26<br>
+    Flush left, ragged right · One typeface · One violet
+  </div>
+</footer>
+
+<script>
+/* ───────────────────────── data ─────────────────────────
+   {id, t: term, l: layer, d: definition, p: parents, base: in Glossary of Making §8}
+*/
+var LAYERS=[
+ {nt:"⟨data⟩",      name:"data",      gloss:"the raw material"},
+ {nt:"⟨model⟩",     name:"model",     gloss:"the machine that learns"},
+ {nt:"⟨learning⟩",  name:"learning",  gloss:"the education"},
+ {nt:"⟨generation⟩",name:"generation",gloss:"the making of image & form"},
+ {nt:"⟨capture⟩",   name:"capture",   gloss:"the scene, reconstructed"},
+ {nt:"⟨agency⟩",    name:"agency",    gloss:"the working partner"},
+ {nt:"⟨critique⟩",  name:"critique",  gloss:"the reckoning"}
+];
+
+var TERMS=[
+/* 0 · data */
+{id:"bool",t:"Boolean logic",l:0,base:1,p:[],d:"The logic of true and false underlying all computation — the ground every layer above stands on."},
+{id:"bigdata",t:"big data",l:0,base:1,p:["bool"],d:"Datasets too large or complex for conventional handling, whose sheer scale becomes a design material in itself."},
+{id:"traindata",t:"training data",l:0,base:1,p:["bigdata"],d:"The examples a model learns from; every later output inherits their scope and their gaps."},
+{id:"curation",t:"dataset curation",l:0,p:["traindata"],d:"The editorial act of selecting, cleaning, and balancing what a model gets to see — corpus-making as a design discipline."},
+{id:"synthdata",t:"synthetic data",l:0,p:["traindata"],d:"Machine-generated training material, used where real examples are scarce, private, or not yet built."},
+{id:"token",t:"token",l:0,p:["bool"],d:"The smallest unit a model reads: a word-piece, an image patch, a slice of geometry."},
+{id:"tokenisation",t:"tokenisation",l:0,p:["token"],d:"Cutting continuous material — text, image, form — into discrete units a machine can process; digitisation in its latest form."},
+{id:"embedding",t:"embedding",l:0,p:["tokenisation"],d:"The translation of a token into coordinates: meaning re-encoded as position."},
+{id:"vecembed",t:"vector embedding",l:0,p:["embedding"],d:"Any item — a word, an image, a detail, a precedent — stored as a list of numbers whose distances measure similarity."},
+{id:"latent",t:"latent space",l:0,base:1,p:["embedding"],d:"The abstract, multidimensional terrain where a model organises what it has learned, and through which new outputs are navigated."},
+/* 1 · model */
+{id:"patrec",t:"pattern recognition",l:1,base:1,p:["bigdata"],d:"The automated identification of regularities in data — the elementary act from which all learning is built."},
+{id:"ml",t:"machine learning",l:1,base:1,p:["patrec","traindata"],d:"Methods by which computers improve at a task by learning patterns from examples rather than following explicit rules."},
+{id:"nn",t:"neural network",l:1,base:1,p:["ml"],d:"A computational model of layered, interconnected units that learns by adjusting the strengths of its connections."},
+{id:"dl",t:"deep learning",l:1,base:1,p:["nn"],d:"Machine learning with many-layered networks, able to learn abstractions upon abstractions."},
+{id:"params",t:"parameters",l:1,p:["nn"],d:"The millions to trillions of learned weights in which a model's knowledge physically resides."},
+{id:"transformer",t:"transformer",l:1,p:["dl","embedding"],d:"The architecture behind current AI: it reads a whole sequence at once and learns which parts matter to which."},
+{id:"attention",t:"self-attention",l:1,p:["transformer"],d:"The transformer's core operation — every element weighs its relation to every other, so structure emerges from relations, not from sequence."},
+{id:"vit",t:"vision transformer",l:1,p:["transformer","tokenisation"],d:"A transformer that reads an image as a sequence of patches: pictures parsed like sentences."},
+{id:"moe",t:"mixture-of-experts",l:1,p:["transformer"],d:"A model composed of many specialists, only a few of which are woken for any given task."},
+{id:"scaling",t:"scaling laws",l:1,p:["dl","params"],d:"The empirical finding that capability grows predictably with model size, data, and compute — quantity becoming quality, lawfully."},
+/* 2 · learning */
+{id:"pretrain",t:"pretraining",l:2,p:["dl","traindata"],d:"The long first education of a model on vast general data, before any specific task is named."},
+{id:"ssl",t:"self-supervised learning",l:2,p:["pretrain"],d:"Learning from raw material by predicting its own hidden parts — no labels, the data teaching itself."},
+{id:"transfer",t:"transfer learning",l:2,p:["pretrain"],d:"Reusing what a model learned in one domain as the starting point for another."},
+{id:"finetune",t:"fine-tuning",l:2,p:["transfer"],d:"The shorter second education: adapting a pretrained model to a specific task, style, or studio corpus."},
+{id:"rlhf",t:"RLHF",l:2,p:["finetune"],d:"Reinforcement learning from human feedback — a model's behaviour shaped by human judgements of better and worse."},
+{id:"icl",t:"in-context learning",l:2,p:["pretrain","scaling"],d:"A model's ability to pick up a task from examples given in the prompt itself, with no retraining."},
+{id:"fewshot",t:"few-shot learning",l:2,p:["icl"],d:"Performing a new task from only a handful of examples."},
+{id:"zeroshot",t:"zero-shot learning",l:2,p:["icl"],d:"Performing a task from the instruction alone, with no examples at all."},
+{id:"foundation",t:"foundation model",l:2,p:["pretrain","scaling"],d:"A very large pretrained model serving as common ground for many downstream tasks — infrastructure rather than tool."},
+{id:"llm",t:"large language model",l:2,p:["foundation","transformer"],d:"A foundation model trained on text; a general instrument for language, and increasingly for reasoning."},
+{id:"multimodal",t:"multimodal model",l:2,p:["foundation","vit"],d:"A model that reads and relates several media at once — text, image, sound, geometry — within one shared space."},
+/* 3 · generation */
+{id:"genai",t:"generative AI",l:3,base:1,p:["dl","latent"],d:"Systems that produce new text, images, or forms by learning the patterns of existing examples."},
+{id:"gan",t:"GAN",l:3,base:1,p:["genai","nn"],d:"Generative adversarial network: two networks in competition — one making, one judging — until the making convinces."},
+{id:"vae",t:"VAE",l:3,p:["genai","latent"],d:"Variational autoencoder: compresses examples into a latent space and generates by decoding new points from it."},
+{id:"diffusion",t:"diffusion model",l:3,base:1,p:["genai"],d:"A generative method that forms images by progressively removing noise — figure emerging from ground."},
+{id:"latentdiff",t:"latent diffusion",l:3,p:["diffusion","latent"],d:"Diffusion run inside a compressed latent space rather than on raw pixels; the engine of current image generators."},
+{id:"prompt",t:"prompt",l:3,base:1,p:["genai","llm"],d:"The textual instruction that steers a generative model — brief-writing become a design act."},
+{id:"conditioning",t:"conditioning",l:3,p:["diffusion","prompt"],d:"Steering generation with added constraints — a sketch, a depth map, a plan — so the model draws inside your lines."},
+{id:"t2i",t:"text-to-image",l:3,base:1,p:["latentdiff","prompt"],d:"The generation of images directly from written description."},
+{id:"i2i",t:"image-to-image",l:3,p:["conditioning"],d:"Generation that starts from an existing image and transforms it under instruction — variation as method."},
+{id:"inpaint",t:"inpainting",l:3,p:["i2i"],d:"Regenerating a chosen region within an image while the rest holds still — the editable detail."},
+{id:"outpaint",t:"outpainting",l:3,p:["i2i"],d:"Extending an image beyond its original frame — the model continues what the edge implies."},
+{id:"superres",t:"super-resolution",l:3,p:["genai"],d:"The reconstruction of fine detail from a coarse image; resolution as inference rather than capture."},
+{id:"styletransfer",t:"neural style transfer",l:3,p:["dl"],d:"Re-rendering one image's content in another's manner — an early, literal separation of the what from the how."},
+{id:"t23d",t:"text-to-3D",l:3,p:["diffusion","prompt"],d:"The generation of three-dimensional form directly from written description — still young, worth watching."},
+/* 4 · capture */
+{id:"neuralrender",t:"neural rendering",l:4,base:1,p:["dl"],d:"The use of neural networks to synthesise or reconstruct images and three-dimensional scenes."},
+{id:"diffrender",t:"differentiable rendering",l:4,p:["neuralrender"],d:"Rendering built so it can run backwards: from an image toward the scene that must have produced it."},
+{id:"radiance",t:"radiance field",l:4,p:["neuralrender"],d:"A scene stored as a function of light — what colour and density occupy every point, seen from every direction. The umbrella over NeRF and splatting."},
+{id:"nerf",t:"NeRF",l:4,p:["radiance","nn"],d:"Neural radiance field: a network that learns a scene from photographs and renders it from any new viewpoint."},
+{id:"splat",t:"3D Gaussian splatting",l:4,p:["radiance"],d:"A radiance field made explicit — millions of soft, coloured blobs in space, rendered in real time."},
+{id:"nvs",t:"novel view synthesis",l:4,p:["radiance"],d:"Producing convincing views of a scene from positions no camera ever occupied."},
+{id:"implicit",t:"neural implicit surface",l:4,p:["radiance"],d:"A surface stored as a learned function rather than a mesh — geometry as equation."},
+{id:"sdf",t:"signed distance field",l:4,p:["implicit"],d:"A shape described by every point's distance to its surface — negative inside, positive out."},
+/* 5 · agency */
+{id:"cot",t:"chain-of-thought",l:5,p:["llm","prompt"],d:"Prompting or training a model to reason in visible steps rather than answer all at once."},
+{id:"reasoning",t:"reasoning model",l:5,p:["cot","rlhf"],d:"A model trained to spend deliberate, structured thought on a problem before responding."},
+{id:"ttc",t:"test-time compute",l:5,p:["reasoning"],d:"Buying better answers with more thinking at the moment of use, rather than more training beforehand."},
+{id:"semsearch",t:"semantic search",l:5,p:["vecembed"],d:"Retrieval by meaning rather than keyword — finding what a query is about, not what it says."},
+{id:"vecdb",t:"vector database",l:5,p:["vecembed"],d:"A store of embeddings, queried by similarity — the archive reorganised by nearness of meaning."},
+{id:"rag",t:"retrieval-augmented generation",l:5,p:["semsearch","llm"],d:"A model that looks things up before it speaks, grounding generation in a chosen corpus — a studio's own archive, for instance."},
+{id:"tooluse",t:"tool use",l:5,p:["llm"],d:"A model's ability to operate external instruments — search, code, CAD — instead of only describing them."},
+{id:"agent",t:"AI agent",l:5,p:["llm","tooluse"],d:"A model given goals, tools, and memory, acting in steps toward an outcome rather than answering once."},
+{id:"agentic",t:"agentic AI",l:5,p:["agent"],d:"The broader shift toward systems that plan, act, and correct themselves across long tasks."},
+{id:"mas",t:"multi-agent system",l:5,p:["agent"],d:"Several agents in structured collaboration — the division of labour returning in computational form."},
+{id:"worldmodel",t:"world model",l:5,p:["foundation"],d:"A system's internal representation of how an environment behaves, used to predict and to plan."},
+/* 6 · critique */
+{id:"bias",t:"bias",l:6,base:1,p:["traindata"],d:"Systematic skew in a model's outputs, inherited from imbalances in what it was shown."},
+{id:"halluc",t:"hallucination",l:6,p:["llm","genai"],d:"Confident output unmoored from fact — fluency mistaken for knowledge."},
+{id:"alignment",t:"alignment",l:6,p:["rlhf"],d:"The work of making a system's behaviour match human intention and value — and the open question of whose."},
+{id:"hitl",t:"human-in-the-loop",l:6,p:["alignment"],d:"Workflows that keep a person inside the machine's cycle of propose and decide."},
+{id:"blackbox",t:"black box",l:6,p:["dl"],d:"A system whose internal workings resist inspection even as its outputs are put to use."},
+{id:"interp",t:"interpretability",l:6,p:["blackbox"],d:"The research effort to open the black box and see what a model has actually learned."},
+{id:"explain",t:"explainability",l:6,p:["interp"],d:"Making a model's individual decisions accountable in human terms."},
+{id:"provenance",t:"provenance",l:6,p:["genai","traindata"],d:"The traceable origin of data, images, and models — where a thing came from and what it passed through."},
+{id:"watermark",t:"watermarking",l:6,p:["provenance"],d:"Marking generated media, visibly or statistically, so its origin can later be established."},
+{id:"collapse",t:"model collapse",l:6,p:["synthdata","genai"],d:"The degradation of models trained on machine-made output — a photocopy of a photocopy."},
+{id:"modelcard",t:"model card",l:6,p:["provenance"],d:"A model's declared specification: what it was trained on, tested for, and should not be used for."},
+{id:"authorship",t:"authorship",l:6,p:["genai","provenance"],d:"The old question, reopened: who is credited when the work is trained, prompted, and generated. It runs straight back to §2 of the first volume."}
+];
+
+var byId={};
+TERMS.forEach(function(x){byId[x.id]=x;});
+
+/* curated image queries — architecture-inflected wherever the term allows it */
+var IMGQ={
+ bool:"boolean operations architecture massing diagram",
+ bigdata:"urban big data visualization city",
+ traindata:"floor plan dataset machine learning architecture",
+ curation:"architecture image dataset corpus floor plans",
+ synthdata:"synthetic 3d building dataset generation",
+ token:"vision transformer image patches diagram",
+ tokenisation:"image patch tokenization diagram",
+ embedding:"embedding space visualization diagram",
+ vecembed:"vector embedding similarity space diagram",
+ latent:"latent space interpolation architecture GAN",
+ patrec:"pattern recognition facade segmentation",
+ ml:"machine learning architectural design workflow diagram",
+ nn:"neural network layers diagram",
+ dl:"deep learning feature hierarchy diagram",
+ params:"neural network weights visualization",
+ transformer:"transformer model architecture diagram",
+ attention:"self-attention map visualization image",
+ vit:"vision transformer patch embedding diagram",
+ moe:"mixture of experts routing diagram",
+ scaling:"neural scaling laws chart",
+ pretrain:"pretraining fine-tuning pipeline diagram",
+ ssl:"self-supervised learning masked prediction diagram",
+ transfer:"transfer learning diagram",
+ finetune:"fine-tuned AI model architecture style dataset",
+ rlhf:"RLHF reinforcement learning human feedback diagram",
+ icl:"in-context learning prompt examples",
+ fewshot:"few-shot learning examples diagram",
+ zeroshot:"zero-shot learning diagram",
+ foundation:"foundation model downstream tasks diagram",
+ llm:"large language model architecture diagram",
+ multimodal:"multimodal model text image audio diagram",
+ genai:"generative AI architecture design concept",
+ gan:"GAN generated architecture facades",
+ vae:"variational autoencoder latent space diagram",
+ diffusion:"diffusion model denoising steps architecture",
+ latentdiff:"latent diffusion generated architecture render",
+ prompt:"text prompt generated architecture image",
+ conditioning:"sketch conditioned AI render architecture depth map",
+ t2i:"text to image generated building render",
+ i2i:"image to image AI architecture variation",
+ inpaint:"AI inpainting building facade edit",
+ outpaint:"AI outpainting extended architecture image",
+ superres:"super resolution architectural photo enhancement",
+ styletransfer:"neural style transfer architecture painting",
+ t23d:"text to 3D generated building model",
+ neuralrender:"neural rendering reconstructed scene",
+ diffrender:"differentiable rendering inverse graphics diagram",
+ radiance:"radiance field building capture render",
+ nerf:"NeRF building reconstruction architecture",
+ splat:"3D gaussian splatting building scan",
+ nvs:"novel view synthesis building interior",
+ implicit:"neural implicit surface reconstruction geometry",
+ sdf:"signed distance field visualization diagram",
+ cot:"chain of thought prompting diagram",
+ reasoning:"reasoning model thinking steps diagram",
+ ttc:"test time compute scaling chart",
+ semsearch:"semantic search embedding retrieval diagram",
+ vecdb:"vector database similarity search diagram",
+ rag:"retrieval augmented generation pipeline diagram",
+ tooluse:"LLM tool use function calling diagram",
+ agent:"AI agent architecture workflow diagram",
+ agentic:"agentic AI workflow loop diagram",
+ mas:"multi-agent system collaboration diagram",
+ worldmodel:"world model prediction diagram AI",
+ bias:"AI dataset bias examples visualization",
+ halluc:"AI hallucination architecture image errors",
+ alignment:"AI alignment diagram",
+ hitl:"human in the loop design workflow diagram",
+ blackbox:"black box AI model diagram",
+ interp:"neural network feature visualization interpretability",
+ explain:"explainable AI saliency map heatmap",
+ provenance:"content provenance C2PA content credentials diagram",
+ watermark:"AI image watermarking diagram",
+ collapse:"model collapse AI generated degradation images",
+ modelcard:"model card documentation example",
+ authorship:"AI authorship architecture generated design debate"
+};
+function imgURL(id){
+  var t=byId[id];
+  var q=IMGQ[id]||(t.t+' architecture AI');
+  return 'https://www.google.com/search?tbm=isch&q='+encodeURIComponent(q);
+}
+var childrenOf={};
+TERMS.forEach(function(x){x.p.forEach(function(pid){(childrenOf[pid]=childrenOf[pid]||[]).push(x.id);});});
+
+/* ─────────────────────── build views ─────────────────── */
+var der=document.getElementById('derivation');
+var svg=document.getElementById('edges');
+LAYERS.forEach(function(L,i){
+  var sec=document.createElement('div');
+  sec.className='layer';sec.id='layer-'+i;
+  var head=document.createElement('div');head.className='layer-head';
+  head.innerHTML='<span class="nt-name"><span class="idx">'+(i+1)+'</span>'+L.nt+'</span><span class="gloss">'+L.gloss+'</span>';
+  var box=document.createElement('div');box.className='terms';
+  TERMS.filter(function(t){return t.l===i;}).forEach(function(t){
+    var b=document.createElement('button');
+    b.className='chip'+(t.base?' base':'');
+    b.textContent=t.t;
+    b.dataset.id=t.id;
+    b.addEventListener('click',function(){select(t.id);});
+    box.appendChild(b);
+  });
+  sec.appendChild(head);sec.appendChild(box);
+  der.appendChild(sec);
+});
+
+var gra=document.getElementById('grammar');
+LAYERS.forEach(function(L,i){
+  var p=document.createElement('div');p.className='production';
+  var parts=TERMS.filter(function(t){return t.l===i;}).map(function(t){
+    return '<button class="term-t'+(t.base?' base':'')+'" data-id="'+t.id+'">'+t.t+'</button>';
+  }).join('<span class="bar">|</span>');
+  p.innerHTML='<span class="lhs">'+L.nt+'</span><span class="assign">::=</span>'+parts+'<span class="p-gloss">'+L.gloss+'</span>';
+  gra.appendChild(p);
+});
+gra.addEventListener('click',function(e){
+  var b=e.target.closest('.term-t');if(b)select(b.dataset.id);
+});
+
+var idx=document.getElementById('index');
+var sorted=TERMS.slice().sort(function(a,b){return a.t.toLowerCase()<b.t.toLowerCase()?-1:1;});
+var groups={};
+sorted.forEach(function(t){
+  var ch=t.t[0].toUpperCase();
+  if(!/[A-Z]/.test(ch))ch='#';
+  (groups[ch]=groups[ch]||[]).push(t);
+});
+Object.keys(groups).sort().forEach(function(ch){
+  var g=document.createElement('div');g.className='alpha-group';
+  g.innerHTML='<div class="alpha-letter">'+ch+'</div>';
+  groups[ch].forEach(function(t){
+    var e=document.createElement('button');
+    e.className='entry';e.dataset.id=t.id;e.dataset.term=t.t.toLowerCase();
+    e.style.width='100%';
+    e.innerHTML='<span class="e-term'+(t.base?' base':'')+'">'+t.t+'</span><span class="e-def">'+t.d+'</span><span class="e-layer">'+LAYERS[t.l].nt+'</span>';
+    e.addEventListener('click',function(){select(t.id);});
+    g.appendChild(e);
+  });
+  idx.appendChild(g);
+});
+
+/* ─────────────────────── selection ───────────────────── */
+var selected=null;
+var panel=document.getElementById('panel');
+
+function ancestryEdges(id){
+  var edges=[],seen={};
+  (function walk(n){
+    if(seen[n])return;seen[n]=1;
+    byId[n].p.forEach(function(pid){edges.push([pid,n]);walk(pid);});
+  })(id);
+  return {edges:edges,nodes:Object.keys(seen)};
+}
+
+function select(id){
+  selected=id;
+  var t=byId[id];
+  var anc=ancestryEdges(id);
+  var kids=childrenOf[id]||[];
+  var kin={};anc.nodes.forEach(function(n){kin[n]=1;});kids.forEach(function(n){kin[n]=1;});
+
+  document.querySelectorAll('#derivation .chip').forEach(function(c){
+    var cid=c.dataset.id;
+    c.classList.toggle('on',cid===id);
+    c.classList.toggle('kin',cid!==id&&!!kin[cid]);
+    c.classList.toggle('dim',cid!==id&&!kin[cid]);
+  });
+  document.querySelectorAll('#grammar .term-t').forEach(function(c){
+    c.classList.toggle('on',c.dataset.id===id);
+  });
+
+  drawEdges(anc.edges,kids.map(function(k){return [id,k];}));
+
+  document.getElementById('pLayer').innerHTML='layer '+(t.l+1)+' · <span class="nt-tag">'+LAYERS[t.l].nt+'</span> — '+LAYERS[t.l].gloss;
+  document.getElementById('pTerm').textContent=t.t;
+  document.getElementById('pDef').textContent=t.d;
+  document.getElementById('pNote').textContent=t.base?'· already defined in A Working Glossary of Making, §8 — shown here as ground':'';
+  document.getElementById('pImg').href=imgURL(id);
+  fillRel('pParents',t.p);
+  fillRel('pChildren',kids);
+  panel.classList.add('open');
+}
+
+function fillRel(elId,ids){
+  var el=document.getElementById(elId);el.innerHTML='';
+  if(!ids.length){el.innerHTML='<span class="rel-none">— ground level</span>';return;}
+  ids.forEach(function(rid){
+    var b=document.createElement('button');
+    b.textContent=byId[rid].t;
+    b.addEventListener('click',function(){select(rid);byId[rid]&&scrollToChip(rid);});
+    el.appendChild(b);
+  });
+}
+function scrollToChip(id){
+  var c=document.querySelector('#derivation .chip[data-id="'+id+'"]');
+  if(c&&derVisible())c.scrollIntoView({block:'center'});
+}
+
+function clearSel(){
+  selected=null;
+  panel.classList.remove('open');
+  document.querySelectorAll('#derivation .chip').forEach(function(c){c.classList.remove('on','kin','dim');});
+  document.querySelectorAll('#grammar .term-t').forEach(function(c){c.classList.remove('on');});
+  svg.innerHTML='';
+}
+document.getElementById('panelClose').addEventListener('click',clearSel);
+document.addEventListener('keydown',function(e){if(e.key==='Escape')clearSel();});
+
+/* ─────────────────────── edges (svg) ─────────────────── */
+function drawEdges(ancEdges,childEdges){
+  svg.innerHTML='';
+  if(!derVisible())return;
+  var host=der.getBoundingClientRect();
+  svg.setAttribute('viewBox','0 0 '+host.width+' '+host.height);
+  function pt(id){
+    var c=document.querySelector('#derivation .chip[data-id="'+id+'"]');
+    if(!c)return null;
+    var r=c.getBoundingClientRect();
+    return {x:r.left-host.left+r.width/2,top:r.top-host.top,bot:r.top-host.top+r.height};
+  }
+  function path(a,b,cls){
+    var A=pt(a),B=pt(b);if(!A||!B)return;
+    var y1,y2;
+    if(B.top>=A.bot){y1=A.bot;y2=B.top;}
+    else if(A.top>=B.bot){y1=A.top;y2=B.bot;}
+    else{y1=A.bot;y2=B.top;}
+    var dy=Math.max(24,Math.abs(y2-y1)*0.45);
+    var s='M'+A.x+','+y1+' C'+A.x+','+(y1+(y2>y1?dy:-dy))+' '+B.x+','+(y2+(y2>y1?-dy:dy))+' '+B.x+','+y2;
+    var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',s);
+    p.setAttribute('fill','none');
+    p.setAttribute('stroke','#5A48E6');
+    p.setAttribute('stroke-width',cls==='child'?1:1.5);
+    if(cls==='child')p.setAttribute('stroke-dasharray','3 4');
+    p.setAttribute('opacity',cls==='child'?0.5:0.85);
+    svg.appendChild(p);
+  }
+  ancEdges.forEach(function(e){path(e[0],e[1],'anc');});
+  childEdges.forEach(function(e){path(e[0],e[1],'child');});
+}
+window.addEventListener('resize',function(){
+  if(selected){var a=ancestryEdges(selected);drawEdges(a.edges,(childrenOf[selected]||[]).map(function(k){return[selected,k];}));}
+});
+
+/* ─────────────────────── views ───────────────────────── */
+var vDer=document.getElementById('vDer'),vGra=document.getElementById('vGra'),vIdx=document.getElementById('vIdx');
+var legend=document.querySelector('.legend');
+function derVisible(){return der.style.display!=='none';}
+function setView(v){
+  der.style.display=v==='der'?'':'none';
+  legend.style.display=v==='der'?'':'none';
+  gra.style.display=v==='gra'?'block':'none';
+  idx.style.display=v==='idx'?'block':'none';
+  vDer.setAttribute('aria-pressed',v==='der');
+  vGra.setAttribute('aria-pressed',v==='gra');
+  vIdx.setAttribute('aria-pressed',v==='idx');
+  if(v!=='der')svg.innerHTML='';
+  else if(selected)select(selected);
+  applySearch();
+}
+vDer.addEventListener('click',function(){setView('der');});
+vGra.addEventListener('click',function(){setView('gra');});
+vIdx.addEventListener('click',function(){setView('idx');});
+LAYERS.forEach(function(_,i){});
+document.querySelectorAll('#masterRule .nt').forEach(function(b){
+  b.addEventListener('click',function(){
+    setView('der');
+    var el=document.getElementById('layer-'+b.dataset.goto);
+    if(el)el.scrollIntoView({block:'start'});
+  });
+});
+
+/* ─────────────────────── search ──────────────────────── */
+var q=document.getElementById('q');
+var countEl=document.getElementById('count');
+var noresult=document.getElementById('noresult');
+function applySearch(){
+  var s=q.value.trim().toLowerCase();
+  var shown=0;
+  document.querySelectorAll('#derivation .chip').forEach(function(c){
+    var hit=!s||byId[c.dataset.id].t.toLowerCase().indexOf(s)>-1;
+    if(!selected)c.classList.toggle('dim',!hit&&!!s);
+    if(hit)shown++;
+  });
+  document.querySelectorAll('#index .entry').forEach(function(e){
+    var t=byId[e.dataset.id];
+    var hit=!s||t.t.toLowerCase().indexOf(s)>-1||t.d.toLowerCase().indexOf(s)>-1;
+    e.classList.toggle('dim',!hit);
+  });
+  document.querySelectorAll('#index .alpha-group').forEach(function(g){
+    var any=g.querySelector('.entry:not(.dim)');
+    g.style.display=any?'':'none';
+  });
+  countEl.textContent=s?shown+' of '+TERMS.length+' terms':TERMS.length+' terms · 7 layers';
+  noresult.classList.toggle('show',!!s&&shown===0&&idx.style.display!=='none');
+}
+q.addEventListener('input',applySearch);
+q.addEventListener('keydown',function(e){if(e.key==='Escape'){q.value='';applySearch();}});
+document.getElementById('clearQ').addEventListener('click',function(){q.value='';applySearch();});
+applySearch();
+</script>
+</body>
+</html>
